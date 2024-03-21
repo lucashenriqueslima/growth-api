@@ -16,7 +16,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => env('DB_CONNECTION', 'mysql'),
 
     /*
     |--------------------------------------------------------------------------
@@ -57,6 +57,17 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+        ],
+
+        'locavibe' => [
+            'driver' => 'mongodb',
+            'host' => env('LOCAVIBE_DB_HOST', '127.0.0.1'),
+            'port' => env('LOCAVIBE_DB_PORT', '27017'),
+            'dsn' => env('LOCAVIBE_DB_DSN'),
+            'database' => env('LOCAVIBE_DB_DATABASE', 'locavibe'),
+            'username' => env('LOCAVIBE_DB_USERNAME', 'root'),
+            'password' => env('LOCAVIBE_DB_PASSWORD', '123456'),
+            'options' => [],
         ],
 
         'mariadb' => [
