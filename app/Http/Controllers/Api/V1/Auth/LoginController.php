@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Locavibe\Renter;
+use App\Http\Resources\MotorcycleResource;
+use App\Http\Resources\BikerResource;
+use App\Models\Locavibe\LocavibeRenter;
+use App\Services\Auth\UpdateBikerAndMotorcycleFields;
 use App\Traits\HttpResponses;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -11,33 +14,34 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    use HttpResponses;
     public function store(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
-            'authToken' => 'required',
+            'cpf' => 'required|string|size:14',
+            'auth_token' => 'required',
         ]);
-
         
         try {
-            $renter = Renter::where('email', $request->email)
-                ->where('authToken', $request->authToken)
+            $renter = LocavibeRenter::where('cpf', $request->cpf)
+                ->where('authToken', $request->auth_token)
                 ->where('authTokenVerified', false)
                 ->firstOrFail();
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Token inválido', 404);
+            return response()->json([
+                'message' => 'Token inválido ou expirado. Por favor, solicite um novo token ou aguarde.'
+            ], 404);
         }
+
+        $biker = UpdateBikerAndMotorcycleFields::run($renter);
         
-        Auth::guard('api')->loginUsingId($renter->id);
+        Auth::loginUsingId($biker->id);
 
         $renter->authTokenVerified = true;
         $renter->authToken = null;
-        $renter->apiToken = $renter->createToken('api')->plainTextToken;
         $renter->save();
 
-        return $this->response(data: [
-            Auth::guard('api')->user()
-        ]);
+        return response()->json([
+            'biker' => new BikerResource($biker),
+        ], 200);
     }
 }

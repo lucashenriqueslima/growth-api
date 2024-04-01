@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Locavibe\Renter;
+use App\Models\Locavibe\LocavibeRenter;
 use App\Services\Auth\GenerateAuthenticationToken;
 use App\Services\Auth\SendAuthenticationToken;
 use App\Traits\HttpResponses;
@@ -12,17 +12,18 @@ use Illuminate\Http\Request;
 
 class VerifyEmailController extends Controller
 {
-    use HttpResponses;
     public function store(Request $request)
     {
         $request->validate([
-            'email' => 'required|email'
+            'cpf' => 'required|string|size:14'
         ]);
 
         try {
-            $renter = Renter::where('email', $request->email)->firstOrFail();
+            $renter = LocavibeRenter::where('cpf', $request->cpf)->firstOrFail();
         } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Email não encontrado', 404);
+            return response()->json([
+                'message' => 'Email não encontrado'
+            ], 404);
         }
 
         $authToken = GenerateAuthenticationToken::run();
@@ -34,6 +35,6 @@ class VerifyEmailController extends Controller
 
         $renter->save();
 
-        return $this->response();
+        return response(status: 200);
     }
 }

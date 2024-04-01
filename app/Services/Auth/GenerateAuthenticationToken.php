@@ -6,6 +6,6 @@ class GenerateAuthenticationToken
 {
     public static function run()
     {
-        return rand(100000, 999999);
+        return rand(1000, 9999);
     }
 }
